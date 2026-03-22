@@ -1,7 +1,6 @@
 import pandas as pd
 import yfinance as yf
 
-
 def load_prices_from_yfinance(
     ticker: str,
     start: str,
