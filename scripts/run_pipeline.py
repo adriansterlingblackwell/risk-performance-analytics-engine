@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from risk_analytics.analytics.performance.cagr import compute_cagr_from_dataframe
 from risk_analytics.analytics.performance.returns import (
     build_returns_dataframe,
     compute_total_return,
@@ -38,14 +39,15 @@ def build_returns_filename(
 
 def main() -> None:
     """
-    Run the first end-to-end market data pipeline.
+    Run the end-to-end market data pipeline.
 
     Steps:
     1. Download and validate raw market data
-    2. Transform into processed analytics-ready data
-    3. Compute return metrics
-    4. Save return analytics output
-    5. Print a concise execution summary
+    2. Transform data into analytics-ready processed format
+    3. Compute return-based analytics
+    4. Compute summary performance metrics
+    5. Save returns analytics output
+    6. Print execution summary
     """
     ticker = "AAPL"
     start_date = "2024-01-01"
@@ -73,9 +75,13 @@ def main() -> None:
         output_dir=processed_output_dir,
     )
 
-    returns_df = build_returns_dataframe(processed_df, price_column="price")
+    returns_df = build_returns_dataframe(
+        df=processed_df,
+        price_column="price",
+    )
 
     total_return = compute_total_return(returns_df["price"])
+    cagr = compute_cagr_from_dataframe(returns_df)
 
     returns_filename = build_returns_filename(
         ticker=ticker,
@@ -83,6 +89,7 @@ def main() -> None:
         end_date=end_date,
         interval=interval,
     )
+
     returns_file_path = save_returns_csv(
         returns_df,
         output_dir=returns_output_dir,
@@ -96,10 +103,15 @@ def main() -> None:
     print(f"Date Range      : {start_date} -> {end_date}")
     print(f"Interval        : {interval}")
     print(f"Rows Processed  : {len(returns_df)}")
+    print("-" * 60)
+    print("Summary Metrics")
+    print("-" * 60)
     print(f"Total Return    : {total_return:.4%}")
+    print(f"CAGR            : {cagr:.4%}")
+    print("-" * 60)
     print(f"Returns Output  : {returns_file_path}")
     print("=" * 60)
 
 
 if __name__ == "__main__":
-    main() 
+    main()
